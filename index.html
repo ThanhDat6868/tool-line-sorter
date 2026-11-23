@@ -1,0 +1,499 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Line Sorter - Công cụ sắp xếp dòng văn bản</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 240px;
+        }
+        .mode-btn {
+            border: 1px solid #cbd5e1;
+            padding: 10px 14px;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .mode-btn:hover {
+            border-color: #2563eb;
+            color: #2563eb;
+        }
+        .mode-btn.active {
+            background: #2563eb;
+            color: white;
+            border-color: #2563eb;
+        }
+    </style>
+</head>
+
+<body class="text-slate-800">
+
+<div class="max-w-6xl mx-auto px-4 py-10">
+
+    <!-- Header -->
+    <header class="text-center mb-8">
+        <div class="inline-block bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-semibold mb-4">
+            FREE ONLINE TEXT TOOL
+        </div>
+
+        <h1 class="text-3xl md:text-4xl font-bold mb-3">
+            Line Sorter
+        </h1>
+
+        <p class="text-slate-600 max-w-2xl mx-auto">
+            Sắp xếp văn bản theo bảng chữ cái, số, độ dài hoặc ngẫu nhiên.
+            Dễ dàng xóa dòng trùng lặp và dòng trống.
+        </p>
+    </header>
+
+    <!-- Main -->
+    <main class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 md:p-7">
+
+        <!-- Sort mode -->
+        <section class="mb-7">
+            <h2 class="font-bold text-lg mb-3">1. Chọn phương thức sắp xếp</h2>
+
+            <div class="flex flex-wrap gap-2" id="modeButtons">
+                <button class="mode-btn active" data-mode="az">A → Z</button>
+                <button class="mode-btn" data-mode="za">Z → A</button>
+                <button class="mode-btn" data-mode="numAsc">1 → 9</button>
+                <button class="mode-btn" data-mode="numDesc">9 → 1</button>
+                <button class="mode-btn" data-mode="short">Ngắn nhất trước</button>
+                <button class="mode-btn" data-mode="long">Dài nhất trước</button>
+                <button class="mode-btn" data-mode="random">Ngẫu nhiên</button>
+                <button class="mode-btn" data-mode="unique">Xóa dòng trùng</button>
+                <button class="mode-btn" data-mode="blank">Xóa dòng trống</button>
+            </div>
+        </section>
+
+        <!-- Options -->
+        <section class="mb-7">
+            <h2 class="font-bold text-lg mb-3">2. Tùy chọn</h2>
+
+            <div class="flex flex-wrap gap-5">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" id="caseSensitive" class="w-4 h-4">
+                    <span class="text-sm">Phân biệt chữ hoa và chữ thường</span>
+                </label>
+
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" id="removeBlanks" class="w-4 h-4" checked>
+                    <span class="text-sm">Tự động xóa dòng trống</span>
+                </label>
+
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" id="trimLines" class="w-4 h-4" checked>
+                    <span class="text-sm">Xóa khoảng trắng đầu/cuối dòng</span>
+                </label>
+            </div>
+        </section>
+
+        <!-- Text areas -->
+        <section class="grid md:grid-cols-2 gap-5">
+
+            <!-- Input -->
+            <div>
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="font-bold text-lg">Văn bản đầu vào</h2>
+                    <span id="inputCount" class="text-sm text-slate-500">0 dòng</span>
+                </div>
+
+                <textarea
+                    id="inputText"
+                    class="w-full border border-slate-300 rounded-xl p-4 outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Nhập mỗi nội dung trên một dòng...
+
+Ví dụ:
+banana
+apple
+Cherry
+orange
+apple
+grape"></textarea>
+
+                <div class="flex flex-wrap gap-2 mt-3">
+                    <button id="sampleBtn" class="text-sm text-blue-600 hover:underline">
+                        Dữ liệu mẫu
+                    </button>
+
+                    <button id="clearBtn" class="text-sm text-red-600 hover:underline">
+                        Xóa nội dung
+                    </button>
+                </div>
+            </div>
+
+            <!-- Output -->
+            <div>
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="font-bold text-lg">Kết quả</h2>
+                    <span id="outputCount" class="text-sm text-slate-500">0 dòng</span>
+                </div>
+
+                <textarea
+                    id="outputText"
+                    readonly
+                    class="w-full border border-slate-300 rounded-xl p-4 outline-none bg-slate-50"
+                    placeholder="Kết quả sẽ hiển thị ở đây..."></textarea>
+
+                <div class="flex flex-wrap gap-2 mt-3">
+                    <button id="copyBtn"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg text-sm font-semibold">
+                        Sao chép kết quả
+                    </button>
+
+                    <button id="downloadBtn"
+                        class="bg-slate-700 hover:bg-slate-800 text-white px-5 py-2 rounded-lg text-sm font-semibold">
+                        Tải file TXT
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Sort button -->
+        <div class="mt-7 flex justify-center">
+            <button id="sortBtn"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-10 py-3 rounded-xl shadow-sm">
+                Sắp xếp ngay
+            </button>
+        </div>
+
+        <!-- Statistics -->
+        <section class="mt-8 border-t pt-6">
+            <h2 class="font-bold text-lg mb-4">Thống kê kết quả</h2>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div class="bg-blue-50 rounded-xl p-4">
+                    <p class="text-sm text-slate-500">Dòng ban đầu</p>
+                    <p id="statOriginal" class="text-2xl font-bold text-blue-700">0</p>
+                </div>
+
+                <div class="bg-green-50 rounded-xl p-4">
+                    <p class="text-sm text-slate-500">Dòng kết quả</p>
+                    <p id="statResult" class="text-2xl font-bold text-green-700">0</p>
+                </div>
+
+                <div class="bg-orange-50 rounded-xl p-4">
+                    <p class="text-sm text-slate-500">Dòng đã loại bỏ</p>
+                    <p id="statRemoved" class="text-2xl font-bold text-orange-700">0</p>
+                </div>
+
+                <div class="bg-purple-50 rounded-xl p-4">
+                    <p class="text-sm text-slate-500">Phương thức</p>
+                    <p id="statMode" class="text-lg font-bold text-purple-700">A → Z</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Notice -->
+        <div class="mt-7 bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-800">
+            <strong>Lưu ý:</strong> Công cụ xử lý văn bản trực tiếp trên trình duyệt.
+            Nội dung của bạn không được gửi lên máy chủ.
+        </div>
+
+    </main>
+
+    <!-- Guide -->
+    <section class="mt-8 bg-white rounded-2xl border border-slate-200 p-6">
+        <h2 class="text-xl font-bold mb-4">Hướng dẫn sử dụng</h2>
+
+        <ol class="list-decimal pl-5 space-y-2 text-slate-600">
+            <li>Nhập danh sách văn bản, mỗi nội dung nằm trên một dòng.</li>
+            <li>Chọn phương thức sắp xếp mong muốn.</li>
+            <li>Điều chỉnh các tùy chọn nếu cần.</li>
+            <li>Nhấn nút Sắp xếp ngay.</li>
+            <li>Sao chép kết quả hoặc tải về file TXT.</li>
+        </ol>
+    </section>
+
+    <footer class="text-center text-sm text-slate-500 mt-8">
+        Line Sorter - Free Online Text Tool
+    </footer>
+
+</div>
+
+<script>
+    const inputText = document.getElementById("inputText");
+    const outputText = document.getElementById("outputText");
+
+    const inputCount = document.getElementById("inputCount");
+    const outputCount = document.getElementById("outputCount");
+
+    const caseSensitive = document.getElementById("caseSensitive");
+    const removeBlanks = document.getElementById("removeBlanks");
+    const trimLines = document.getElementById("trimLines");
+
+    let currentMode = "az";
+
+    const modeNames = {
+        az: "A → Z",
+        za: "Z → A",
+        numAsc: "1 → 9",
+        numDesc: "9 → 1",
+        short: "Ngắn nhất trước",
+        long: "Dài nhất trước",
+        random: "Ngẫu nhiên",
+        unique: "Xóa dòng trùng",
+        blank: "Xóa dòng trống"
+    };
+
+    // Chọn phương thức
+    document.querySelectorAll(".mode-btn").forEach(button => {
+        button.addEventListener("click", () => {
+            document.querySelectorAll(".mode-btn").forEach(btn => {
+                btn.classList.remove("active");
+            });
+
+            button.classList.add("active");
+            currentMode = button.dataset.mode;
+        });
+    });
+
+    // Đếm số dòng
+    function countLines(text) {
+        if (!text) return 0;
+        return text.split(/\r\n|\r|\n/).length;
+    }
+
+    function updateInputCount() {
+        inputCount.textContent = countLines(inputText.value) + " dòng";
+    }
+
+    inputText.addEventListener("input", updateInputCount);
+
+    // Lấy danh sách dòng
+    function getLines() {
+        let lines = inputText.value.split(/\r\n|\r|\n/);
+
+        if (trimLines.checked) {
+            lines = lines.map(line => line.trim());
+        }
+
+        if (removeBlanks.checked || currentMode === "blank") {
+            lines = lines.filter(line => line.trim() !== "");
+        }
+
+        return lines;
+    }
+
+    // So sánh chữ
+    function compareText(a, b) {
+        if (caseSensitive.checked) {
+            return a < b ? -1 : a > b ? 1 : 0;
+        }
+
+        return a.localeCompare(b, "vi", {
+            sensitivity: "base",
+            numeric: true
+        });
+    }
+
+    // Sắp xếp danh sách
+    function sortLines(lines) {
+        let result = [...lines];
+
+        switch (currentMode) {
+
+            case "az":
+                result.sort(compareText);
+                break;
+
+            case "za":
+                result.sort((a, b) => compareText(b, a));
+                break;
+
+            case "numAsc":
+                result.sort((a, b) => {
+                    const numA = Number(a.trim().replace(",", "."));
+                    const numB = Number(b.trim().replace(",", "."));
+
+                    const validA = a.trim() !== "" && Number.isFinite(numA);
+                    const validB = b.trim() !== "" && Number.isFinite(numB);
+
+                    if (validA && validB) return numA - numB;
+                    if (validA) return -1;
+                    if (validB) return 1;
+
+                    return compareText(a, b);
+                });
+                break;
+
+            case "numDesc":
+                result.sort((a, b) => {
+                    const numA = Number(a.trim().replace(",", "."));
+                    const numB = Number(b.trim().replace(",", "."));
+
+                    const validA = a.trim() !== "" && Number.isFinite(numA);
+                    const validB = b.trim() !== "" && Number.isFinite(numB);
+
+                    if (validA && validB) return numB - numA;
+                    if (validA) return -1;
+                    if (validB) return 1;
+
+                    return compareText(b, a);
+                });
+                break;
+
+            case "short":
+                result.sort((a, b) => {
+                    return a.length - b.length || compareText(a, b);
+                });
+                break;
+
+            case "long":
+                result.sort((a, b) => {
+                    return b.length - a.length || compareText(a, b);
+                });
+                break;
+
+            case "random":
+                for (let i = result.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [result[i], result[j]] = [result[j], result[i]];
+                }
+                break;
+
+            case "unique": {
+                const seen = new Set();
+
+                result = result.filter(line => {
+                    const key = caseSensitive.checked
+                        ? line
+                        : line.toLocaleLowerCase("vi");
+
+                    if (seen.has(key)) return false;
+
+                    seen.add(key);
+                    return true;
+                });
+                break;
+            }
+
+            case "blank":
+                result = result.filter(line => line.trim() !== "");
+                break;
+        }
+
+        return result;
+    }
+
+    // Thực hiện sắp xếp
+    function performSort() {
+        const originalLines = inputText.value.split(/\r\n|\r|\n/);
+        const lines = getLines();
+
+        if (inputText.value.trim() === "") {
+            alert("Vui lòng nhập văn bản trước khi sắp xếp!");
+            return;
+        }
+
+        const result = sortLines(lines);
+
+        outputText.value = result.join("\n");
+
+        const originalCount = originalLines.length;
+        const resultCount = result.length;
+
+        inputCount.textContent = originalCount + " dòng";
+        outputCount.textContent = resultCount + " dòng";
+
+        document.getElementById("statOriginal").textContent = originalCount;
+        document.getElementById("statResult").textContent = resultCount;
+        document.getElementById("statRemoved").textContent =
+            Math.max(0, originalCount - resultCount);
+
+        document.getElementById("statMode").textContent =
+            modeNames[currentMode];
+
+    }
+
+    document.getElementById("sortBtn").addEventListener("click", performSort);
+
+    // Dữ liệu mẫu
+    document.getElementById("sampleBtn").addEventListener("click", () => {
+        inputText.value =
+`banana
+apple
+Cherry
+orange
+apple
+grape
+10
+2
+25
+5
+watermelon
+
+mango`;
+
+        updateInputCount();
+        performSort();
+    });
+
+    // Xóa nội dung
+    document.getElementById("clearBtn").addEventListener("click", () => {
+        inputText.value = "";
+        outputText.value = "";
+
+        updateInputCount();
+        outputCount.textContent = "0 dòng";
+
+        document.getElementById("statOriginal").textContent = "0";
+        document.getElementById("statResult").textContent = "0";
+        document.getElementById("statRemoved").textContent = "0";
+        document.getElementById("statMode").textContent = modeNames[currentMode];
+    });
+
+    // Sao chép
+    document.getElementById("copyBtn").addEventListener("click", async () => {
+        if (!outputText.value) {
+            alert("Chưa có kết quả để sao chép!");
+            return;
+        }
+
+        try {
+            await navigator.clipboard.writeText(outputText.value);
+            alert("Đã sao chép kết quả!");
+        } catch (error) {
+            outputText.select();
+            document.execCommand("copy");
+            alert("Đã sao chép kết quả!");
+        }
+    });
+
+    // Tải file TXT
+    document.getElementById("downloadBtn").addEventListener("click", () => {
+        if (!outputText.value) {
+            alert("Chưa có kết quả để tải!");
+            return;
+        }
+
+        const blob = new Blob(
+            ["\uFEFF" + outputText.value],
+            { type: "text/plain;charset=utf-8" }
+        );
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+
+        link.href = url;
+        link.download = "line-sorter-result.txt";
+        link.click();
+
+        URL.revokeObjectURL(url);
+    });
+
+    updateInputCount();
+</script>
+
+</body>
+</html>
